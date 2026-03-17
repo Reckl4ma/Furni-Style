@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FurniStyle — Панель руководителя</title>
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-title">FurniStyle</div>
+      <div class="brand-subtitle">Панель руководителя</div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Cклад</h2>
+      </div>
+
+      <div class="block">
+        <div class="block-head">
+          <h3>Список товаров</h3>
+          <input id="inventorySearch" class="search-input" type="text" placeholder="Название или категория…" />
+        </div>
+
+        <div class="inventory-table">
+          <div class="inventory-head">
+            <div>Название</div>
+            <div>Категория</div>
+            <div>Цена</div>
+            <div>Количество</div>
+            <div>Действия</div>
+          </div>
+
+          <div id="inventoryList" class="inventory-body"></div>
+        </div>
+
+        <div id="inventoryError" class="message" hidden></div>
+      </div>
+
+      <div class="block">
+        <div class="block-head">
+          <h3>Создать товар</h3>
+        </div>
+
+        <form id="createItemForm" class="form">
+          <label>
+            <div class="label">Название</div>
+            <input id="newItemName" type="text" required />
+          </label>
+
+          <label>
+            <div class="label">Категория</div>
+            <input id="newItemCategory" type="text" required />
+          </label>
+
+          <label>
+            <div class="label">Цена</div>
+            <input id="newItemPrice" type="number" min="0" step="1" required />
+          </label>
+
+          <label>
+            <div class="label">Количество</div>
+            <input id="newItemStock" type="number" min="0" step="1" required />
+          </label>
+
+          <div class="form-actions">
+            <button class="btn" type="submit">Создать</button>
+          </div>
+
+          <div id="createItemMsg" class="message" hidden></div>
+        </form>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Заказы</h2>
+      </div>
+
+      <div class="block">
+        <div class="block-head">
+          <h3>Все заказы</h3>
+          <input id="ordersSearch" type="text" placeholder="Поиск по имени/телефону" />
+        </div>
+
+        <div id="ordersList" class="orders-list"></div>
+
+        <div id="ordersError" class="message" hidden></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="admin.js"></script>
+</body>
+</html>
