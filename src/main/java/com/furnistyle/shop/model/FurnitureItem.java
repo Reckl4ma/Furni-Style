@@ -99,7 +99,7 @@ public class FurnitureItem {
         stockCount = 0;
     }
 
-    public void setNotOnOrder(){
+    public void setOutOfStock(){
         status = Status.OUT_OF_STOCK;
         stockCount = 0;
     }
