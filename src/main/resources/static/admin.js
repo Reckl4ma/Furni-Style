@@ -340,7 +340,9 @@ function renderOrders(){
         cancelBtn.addEventListener("click", function(){
             fetch("/api/orders/" + order.id + "/changeStatus?newStatus=CANCELLED", {method: "POST"})
                 .then(() => getAllOrders())
-                .then(() => renderOrders());
+                .then(() => renderOrders())
+                .then(() => loadInventory())
+                .then(() => renderInventory());
         });
         actions.appendChild(cancelBtn);
 

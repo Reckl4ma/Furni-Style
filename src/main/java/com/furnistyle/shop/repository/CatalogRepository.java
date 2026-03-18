@@ -15,7 +15,7 @@ import java.sql.SQLException;
 
 @Repository
 public class CatalogRepository {
-    private static final String URL = "jdbc:sqlite:src/main/sql/furnistyle.db";
+    private static final String URL = "jdbc:sqlite:data/furnistyle.db";
 
     private Connection getConnection() throws SQLException{
         return DriverManager.getConnection(URL);
@@ -255,4 +255,29 @@ public class CatalogRepository {
             throw new RuntimeException("Ошибка обновление товара", e);
         }
     }
+
+    public void changeStock(int id, int newStockCount) {
+        String status;
+
+        if (newStockCount > 0) {
+            status = "IN_STOCK";
+        } else {
+            status = "OUT_OF_STOCK";
+        }
+
+        String sql = "UPDATE FurnitureItems SET stockCount = ?, status = ? WHERE id = ?";
+
+        try (
+            Connection connection = getConnection();
+            PreparedStatement statement = connection.prepareStatement(sql);
+        ) {
+            statement.setInt(1, newStockCount);
+            statement.setString(2, status);
+            statement.setInt(3, id);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Ошибка изменения остатка товара", e);
+        }
+    }
+
 }

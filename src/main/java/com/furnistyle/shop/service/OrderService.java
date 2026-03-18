@@ -12,16 +12,19 @@ import com.furnistyle.shop.model.Client;
 import com.furnistyle.shop.model.Order;
 import com.furnistyle.shop.model.OrderLine;
 import com.furnistyle.shop.model.OrderStatus;
+import com.furnistyle.shop.repository.CatalogRepository;
 
 @Service
 public class OrderService {
+    private final CatalogRepository catalogRepository;
     private final CatalogService catalogService;
     private Map<Integer, Order> orders = new HashMap<>();
     private int nextOrderId = 1;
     private int nextClientId = 1;
     
-    public OrderService(CatalogService catalogService){
+    public OrderService(CatalogService catalogService, CatalogRepository catalogRepository){
         this.catalogService = catalogService;
+        this.catalogRepository = catalogRepository;
     }
 
     public Order createOrder(Client client){
@@ -99,35 +102,60 @@ public class OrderService {
         if (newStatus == null) {
             throw new IllegalArgumentException("Статус не задан");
         }
+
         Order order = getOrder(orderId);
+
         if (!order.getStatus().canChangeTo(newStatus)) {
             throw new IllegalArgumentException("Переход на новый статус невозможен");
         }
+
         if (newStatus == OrderStatus.CONFIRMED) {
             List<OrderLine> lines = order.getLines();
+
             for (OrderLine line : lines){
                 if (line.getItem().getStatus() == FurnitureItem.Status.OUT_OF_STOCK) {
-                    throw new IllegalArgumentException("Ошибка, товар " + line.getItem().getName() + " в заказе уже полностью распродан");
+                    throw new IllegalArgumentException(
+                        "Ошибка, товар " + line.getItem().getName() + " в заказе уже полностью распродан"
+                    );
                 }
-                if (line.getItem().getStatus() == FurnitureItem.Status.IN_STOCK && line.getItem().getStockCount() < line.getQuantity()) {
-                    throw new IllegalArgumentException("Ошибка, требуемое количество товара " + line.getItem().getName() + " в заказе уже распродано");
+
+                if (line.getItem().getStatus() == FurnitureItem.Status.IN_STOCK
+                        && line.getItem().getStockCount() < line.getQuantity()) {
+                    throw new IllegalArgumentException(
+                        "Ошибка, требуемое количество товара " + line.getItem().getName() + " в заказе уже распродано"
+                    );
                 }
             }
+
             for (OrderLine line : lines){
                 if (line.getItem().getStatus() == FurnitureItem.Status.IN_STOCK) {
-                    line.getItem().setStockCount(line.getItem().getStockCount() - line.getQuantity());
+                    int newStockCount = line.getItem().getStockCount() - line.getQuantity();
+
+                    catalogRepository.changeStock(line.getItem().getId(), newStockCount);
+                    line.getItem().setStockCount(newStockCount);
                 }
             }
         }
-        if (newStatus == OrderStatus.CANCELLED && (order.getStatus() == OrderStatus.CONFIRMED || order.getStatus() == OrderStatus.IN_PROGRESS)) {
+
+        if (newStatus == OrderStatus.CANCELLED
+                && (order.getStatus() == OrderStatus.CONFIRMED || order.getStatus() == OrderStatus.IN_PROGRESS)) {
+
             List<OrderLine> lines = order.getLines();
+
             for (OrderLine line : lines){
-                FurnitureItem item = line.getItem();
-                if (item.getStatus() != FurnitureItem.Status.ON_ORDER) {
-                    item.setStockCount(item.getStockCount() + line.getQuantity());
+                FurnitureItem currentItem = catalogRepository.findById(line.getItem().getId());
+
+                if (currentItem.getStatus() != FurnitureItem.Status.ON_ORDER) {
+                    int newStockCount = currentItem.getStockCount() + line.getQuantity();
+
+                    catalogRepository.changeStock(currentItem.getId(), newStockCount);
+
+                    currentItem.setStockCount(newStockCount);
+                    line.getItem().setStockCount(newStockCount);
                 }
             }
         }
+
         order.changeStatus(newStatus);
     }
 
